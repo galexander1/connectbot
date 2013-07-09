@@ -373,7 +373,7 @@ public class ConsoleActivity extends Activity {
 			}
 		});
 
-		final ImageView ctrlButton = (ImageView) findViewById(R.id.button_ctrl);
+		final TextView ctrlButton = (TextView) findViewById(R.id.button_ctrl);
 		ctrlButton.setOnClickListener(new OnClickListener() {
 			public void onClick(View view) {
 				View flip = findCurrentView(R.id.console_flip);
@@ -388,7 +388,7 @@ public class ConsoleActivity extends Activity {
 			}
 		});
 
-		final ImageView escButton = (ImageView) findViewById(R.id.button_esc);
+		final TextView escButton = (TextView) findViewById(R.id.button_esc);
 		escButton.setOnClickListener(new OnClickListener() {
 			public void onClick(View view) {
 				View flip = findCurrentView(R.id.console_flip);

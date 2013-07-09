@@ -122,9 +122,8 @@
 	<RelativeLayout
 		android:id="@+id/keyboard_group"
 		android:layout_width="fill_parent"
-		android:layout_height="wrap_content"
+		android:layout_height="60sp"
 		android:layout_alignParentBottom="true"
-		android:padding="15dip"
 		android:visibility="gone">
 
 		<ImageView
@@ -137,26 +136,109 @@
 			android:contentDescription="@string/image_description_show_keyboard"
 			/>
 
-		<ImageView
+		<TextView
 			android:id="@+id/button_ctrl"
-			android:paddingRight="15dip"
 			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
+			android:layout_height="match_parent"
 			android:layout_alignParentLeft="true"
 			android:layout_alignParentBottom="true"
-			android:src="@+drawable/button_ctrl"
-			android:contentDescription="@string/image_description_toggle_control_character"
+			android:gravity="center"
+			android:text="ctrl"
+			android:textColor="#fff"
+			android:textSize="18sp"
+			android:background="@drawable/console_button"
+			android:paddingLeft="5dip"
+			android:paddingRight="5dip"
+			android:clickable="true"
 			/>
-
-		<ImageView
+		<TextView
 			android:id="@+id/button_esc"
-			android:paddingRight="15dip"
 			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
+			android:layout_height="match_parent"
 			android:layout_toRightOf="@+id/button_ctrl"
 			android:layout_alignParentBottom="true"
-			android:src="@+drawable/button_esc"
-			android:contentDescription="@string/image_description_send_escape_character"
+			android:gravity="center"
+			android:text="esc"
+			android:textColor="#fff"
+			android:background="@drawable/console_button"
+			android:paddingLeft="5dip"
+			android:paddingRight="5dip"
+			android:textSize="18sp"
+			android:clickable="true"
+			/>
+		<TextView
+			android:id="@+id/button_tab"
+			android:layout_width="wrap_content"
+			android:layout_height="match_parent"
+			android:layout_toRightOf="@+id/button_esc"
+			android:layout_alignParentBottom="true"
+			android:gravity="center"
+			android:text="tab"
+			android:textColor="#fff"
+			android:background="@drawable/console_button"
+			android:paddingLeft="5dip"
+			android:paddingRight="5dip"
+			android:textSize="18sp"
+			android:clickable="true"
+			/>
+		<TextView
+			android:id="@+id/button_left"
+			android:layout_width="wrap_content"
+			android:layout_height="match_parent"
+			android:layout_toRightOf="@+id/button_tab"
+			android:layout_alignParentBottom="true"
+			android:gravity="center"
+			android:text="left"
+			android:textColor="#fff"
+			android:background="@drawable/console_button"
+			android:paddingLeft="5dip"
+			android:paddingRight="5dip"
+			android:textSize="18sp"
+			android:clickable="true"
+			/>
+		<TextView
+			android:id="@+id/button_down"
+			android:layout_width="wrap_content"
+			android:layout_height="30sp"
+			android:layout_toRightOf="@+id/button_left"
+			android:layout_alignParentBottom="true"
+			android:gravity="center"
+			android:text="down"
+			android:background="@drawable/console_button"
+			android:paddingLeft="5dip"
+			android:paddingRight="5dip"
+			android:textColor="#fff"
+			android:textSize="18sp"
+			android:clickable="true"
+			/>
+		<TextView
+			android:id="@+id/button_up"
+			android:layout_height="30sp"
+			android:layout_width="wrap_content"
+			android:layout_above="@+id/button_down"
+			android:layout_alignLeft="@+id/button_down"
+			android:layout_alignRight="@+id/button_down"
+			android:gravity="center"
+			android:text="up"
+			android:textColor="#fff"
+			android:background="@drawable/console_button"
+			android:textSize="18sp"
+			android:clickable="true"
+			/>
+		<TextView
+			android:id="@+id/button_right"
+			android:layout_width="wrap_content"
+			android:layout_height="match_parent"
+			android:layout_toRightOf="@+id/button_down"
+			android:layout_alignParentBottom="true"
+			android:gravity="center"
+			android:text="right"
+			android:textColor="#fff"
+			android:background="@drawable/console_button"
+			android:paddingLeft="5dip"
+			android:paddingRight="5dip"
+			android:textSize="18sp"
+			android:clickable="true"
 			/>
 
 	</RelativeLayout>
