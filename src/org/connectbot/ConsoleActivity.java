@@ -402,6 +402,76 @@ public class ConsoleActivity extends Activity {
 				actionBar.hide();
 			}
 		});
+		final TextView tabButton = (TextView) findViewById(R.id.button_tab);
+		tabButton.setOnClickListener(new OnClickListener() {
+			public void onClick(View view) {
+				View flip = findCurrentView(R.id.console_flip);
+				if (flip == null) return;
+				TerminalView terminal = (TerminalView)flip;
+
+				TerminalKeyListener handler = terminal.bridge.getKeyHandler();
+				handler.onKey(terminal, KeyEvent.KEYCODE_TAB, new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_TAB));
+
+				keyboardGroup.setVisibility(View.GONE);
+				actionBar.hide();
+			}
+		});
+		final TextView leftButton = (TextView) findViewById(R.id.button_left);
+		leftButton.setOnClickListener(new OnClickListener() {
+			public void onClick(View view) {
+				View flip = findCurrentView(R.id.console_flip);
+				if (flip == null) return;
+				TerminalView terminal = (TerminalView)flip;
+
+				TerminalKeyListener handler = terminal.bridge.getKeyHandler();
+				handler.onKey(terminal, KeyEvent.KEYCODE_DPAD_LEFT, new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_LEFT));
+
+				keyboardGroup.setVisibility(View.GONE);
+				actionBar.hide();
+			}
+		});
+		final TextView rightButton = (TextView) findViewById(R.id.button_right);
+		rightButton.setOnClickListener(new OnClickListener() {
+			public void onClick(View view) {
+				View flip = findCurrentView(R.id.console_flip);
+				if (flip == null) return;
+				TerminalView terminal = (TerminalView)flip;
+
+				TerminalKeyListener handler = terminal.bridge.getKeyHandler();
+				handler.onKey(terminal, KeyEvent.KEYCODE_DPAD_RIGHT, new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_RIGHT));
+
+				keyboardGroup.setVisibility(View.GONE);
+				actionBar.hide();
+			}
+		});
+		final TextView upButton = (TextView) findViewById(R.id.button_up);
+		upButton.setOnClickListener(new OnClickListener() {
+			public void onClick(View view) {
+				View flip = findCurrentView(R.id.console_flip);
+				if (flip == null) return;
+				TerminalView terminal = (TerminalView)flip;
+
+				TerminalKeyListener handler = terminal.bridge.getKeyHandler();
+				handler.onKey(terminal, KeyEvent.KEYCODE_DPAD_UP, new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_UP));
+
+				keyboardGroup.setVisibility(View.GONE);
+				actionBar.hide();
+			}
+		});
+		final TextView downButton = (TextView) findViewById(R.id.button_down);
+		downButton.setOnClickListener(new OnClickListener() {
+			public void onClick(View view) {
+				View flip = findCurrentView(R.id.console_flip);
+				if (flip == null) return;
+				TerminalView terminal = (TerminalView)flip;
+
+				TerminalKeyListener handler = terminal.bridge.getKeyHandler();
+				handler.onKey(terminal, KeyEvent.KEYCODE_DPAD_DOWN, new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_DOWN));
+
+				keyboardGroup.setVisibility(View.GONE);
+				actionBar.hide();
+			}
+		});
 
 		actionBar = ActionBarWrapper.getActionBar(this);
 		actionBar.setDisplayHomeAsUpEnabled(true);
