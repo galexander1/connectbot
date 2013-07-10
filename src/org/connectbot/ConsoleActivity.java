@@ -44,6 +44,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.text.ClipboardManager;
 import android.util.Log;
@@ -120,6 +121,8 @@ public class ConsoleActivity extends Activity {
 
 	private InputMethodManager inputManager;
 
+	private RelativeLayout keyboardGroup;
+
 	private MenuItem disconnect, copy, paste, portForward, resize, urlscan;
 
 	protected TerminalBridge copySource = null;
@@ -133,6 +136,9 @@ public class ConsoleActivity extends Activity {
 
 	private ActionBarWrapper actionBar;
 	private boolean inActionBarMenu = false;
+
+	private boolean keyboardVisible = false;
+	private long keyboardVisibleUntil = 0;
 
 	private ServiceConnection connection = new ServiceConnection() {
 		public void onServiceConnected(ComponentName className, IBinder service) {
@@ -260,6 +266,42 @@ public class ConsoleActivity extends Activity {
 		booleanPromptGroup.setVisibility(View.GONE);
 	}
 
+	// ensures that keyboardGroup will be visible for the next
+	// KEYBOARD_DISPLAY_TIME ms
+	private void showKeyboardGroup() {
+		long now = SystemClock.uptimeMillis();
+		keyboardVisibleUntil = now + KEYBOARD_DISPLAY_TIME;
+
+		if (keyboardVisible) {
+			return;
+		}
+
+		keyboardVisible = true;
+		keyboardGroup.startAnimation(keyboard_fade_in);
+		keyboardGroup.setVisibility(View.VISIBLE);
+		actionBar.show();
+
+		class hiderRunnable implements Runnable {
+			@Override
+			public void run() {
+				long now = SystemClock.uptimeMillis();
+				if (!keyboardVisible ||
+				    keyboardGroup.getVisibility() == View.GONE || inActionBarMenu)
+					return;
+				if (now >= keyboardVisibleUntil) {
+					keyboardGroup.startAnimation(keyboard_fade_out);
+					keyboardGroup.setVisibility(View.GONE);
+					actionBar.hide();
+					keyboardVisible = false;
+				} else {
+					handler.postDelayed(new hiderRunnable(), keyboardVisibleUntil - now);
+				}
+			}
+		}
+
+		handler.postDelayed(new hiderRunnable(), KEYBOARD_DISPLAY_TIME);
+	}
+
 	// more like configureLaxMode -- enable network IO on UI thread
 	private void configureStrictMode() {
 		try {
@@ -358,7 +400,7 @@ public class ConsoleActivity extends Activity {
 
 		inputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 
-		final RelativeLayout keyboardGroup = (RelativeLayout) findViewById(R.id.keyboard_group);
+		keyboardGroup = (RelativeLayout) findViewById(R.id.keyboard_group);
 
 		mKeyboardButton = (ImageView) findViewById(R.id.button_keyboard);
 		mKeyboardButton.setOnClickListener(new OnClickListener() {
@@ -370,6 +412,7 @@ public class ConsoleActivity extends Activity {
 				inputManager.showSoftInput(flip, InputMethodManager.SHOW_FORCED);
 				keyboardGroup.setVisibility(View.GONE);
 				actionBar.hide();
+				keyboardVisible = false;
 			}
 		});
 
@@ -385,6 +428,7 @@ public class ConsoleActivity extends Activity {
 
 				keyboardGroup.setVisibility(View.GONE);
 				actionBar.hide();
+				keyboardVisible = false;
 			}
 		});
 
@@ -398,8 +442,7 @@ public class ConsoleActivity extends Activity {
 				TerminalKeyListener handler = terminal.bridge.getKeyHandler();
 				handler.sendEscape();
 
-				keyboardGroup.setVisibility(View.GONE);
-				actionBar.hide();
+				showKeyboardGroup();
 			}
 		});
 		final TextView tabButton = (TextView) findViewById(R.id.button_tab);
@@ -412,8 +455,7 @@ public class ConsoleActivity extends Activity {
 				TerminalKeyListener handler = terminal.bridge.getKeyHandler();
 				handler.onKey(terminal, KeyEvent.KEYCODE_TAB, new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_TAB));
 
-				keyboardGroup.setVisibility(View.GONE);
-				actionBar.hide();
+				showKeyboardGroup();
 			}
 		});
 		final TextView leftButton = (TextView) findViewById(R.id.button_left);
@@ -426,8 +468,7 @@ public class ConsoleActivity extends Activity {
 				TerminalKeyListener handler = terminal.bridge.getKeyHandler();
 				handler.onKey(terminal, KeyEvent.KEYCODE_DPAD_LEFT, new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_LEFT));
 
-				keyboardGroup.setVisibility(View.GONE);
-				actionBar.hide();
+				showKeyboardGroup();
 			}
 		});
 		final TextView rightButton = (TextView) findViewById(R.id.button_right);
@@ -440,8 +481,7 @@ public class ConsoleActivity extends Activity {
 				TerminalKeyListener handler = terminal.bridge.getKeyHandler();
 				handler.onKey(terminal, KeyEvent.KEYCODE_DPAD_RIGHT, new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_RIGHT));
 
-				keyboardGroup.setVisibility(View.GONE);
-				actionBar.hide();
+				showKeyboardGroup();
 			}
 		});
 		final TextView upButton = (TextView) findViewById(R.id.button_up);
@@ -454,8 +494,7 @@ public class ConsoleActivity extends Activity {
 				TerminalKeyListener handler = terminal.bridge.getKeyHandler();
 				handler.onKey(terminal, KeyEvent.KEYCODE_DPAD_UP, new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_UP));
 
-				keyboardGroup.setVisibility(View.GONE);
-				actionBar.hide();
+				showKeyboardGroup();
 			}
 		});
 		final TextView downButton = (TextView) findViewById(R.id.button_down);
@@ -468,8 +507,7 @@ public class ConsoleActivity extends Activity {
 				TerminalKeyListener handler = terminal.bridge.getKeyHandler();
 				handler.onKey(terminal, KeyEvent.KEYCODE_DPAD_DOWN, new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_DOWN));
 
-				keyboardGroup.setVisibility(View.GONE);
-				actionBar.hide();
+				showKeyboardGroup();
 			}
 		});
 
@@ -650,20 +688,7 @@ public class ConsoleActivity extends Activity {
 						&& event.getEventTime() - event.getDownTime() < CLICK_TIME
 						&& Math.abs(event.getX() - lastX) < MAX_CLICK_DISTANCE
 						&& Math.abs(event.getY() - lastY) < MAX_CLICK_DISTANCE) {
-					keyboardGroup.startAnimation(keyboard_fade_in);
-					keyboardGroup.setVisibility(View.VISIBLE);
-					actionBar.show();
-
-					handler.postDelayed(new Runnable() {
-						public void run() {
-							if (keyboardGroup.getVisibility() == View.GONE || inActionBarMenu)
-								return;
-
-							keyboardGroup.startAnimation(keyboard_fade_out);
-							keyboardGroup.setVisibility(View.GONE);
-							actionBar.hide();
-						}
-					}, KEYBOARD_DISPLAY_TIME);
+					showKeyboardGroup();
 				}
 
 				// pass any touch events back to detector
