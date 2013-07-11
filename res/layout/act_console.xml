@@ -147,8 +147,7 @@
 			android:textColor="#fff"
 			android:textSize="18sp"
 			android:background="@drawable/console_button"
-			android:paddingLeft="5dip"
-			android:paddingRight="5dip"
+			android:minEms="2"
 			android:clickable="true"
 			/>
 		<TextView
@@ -160,10 +159,9 @@
 			android:gravity="center"
 			android:text="esc"
 			android:textColor="#fff"
-			android:background="@drawable/console_button"
-			android:paddingLeft="5dip"
-			android:paddingRight="5dip"
 			android:textSize="18sp"
+			android:background="@drawable/console_button"
+			android:minEms="2"
 			android:clickable="true"
 			/>
 		<TextView
@@ -175,10 +173,9 @@
 			android:gravity="center"
 			android:text="tab"
 			android:textColor="#fff"
-			android:background="@drawable/console_button"
-			android:paddingLeft="5dip"
-			android:paddingRight="5dip"
 			android:textSize="18sp"
+			android:background="@drawable/console_button"
+			android:minEms="2"
 			android:clickable="true"
 			/>
 		<TextView
@@ -190,10 +187,9 @@
 			android:gravity="center"
 			android:text="left"
 			android:textColor="#fff"
-			android:background="@drawable/console_button"
-			android:paddingLeft="5dip"
-			android:paddingRight="5dip"
 			android:textSize="18sp"
+			android:background="@drawable/console_button"
+			android:minEms="2"
 			android:clickable="true"
 			/>
 		<TextView
@@ -204,11 +200,10 @@
 			android:layout_alignParentBottom="true"
 			android:gravity="center"
 			android:text="down"
-			android:background="@drawable/console_button"
-			android:paddingLeft="5dip"
-			android:paddingRight="5dip"
 			android:textColor="#fff"
 			android:textSize="18sp"
+			android:background="@drawable/console_button"
+			android:minEms="2"
 			android:clickable="true"
 			/>
 		<TextView
@@ -221,8 +216,8 @@
 			android:gravity="center"
 			android:text="up"
 			android:textColor="#fff"
-			android:background="@drawable/console_button"
 			android:textSize="18sp"
+			android:background="@drawable/console_button"
 			android:clickable="true"
 			/>
 		<TextView
@@ -235,8 +230,7 @@
 			android:text="right"
 			android:textColor="#fff"
 			android:background="@drawable/console_button"
-			android:paddingLeft="5dip"
-			android:paddingRight="5dip"
+			android:minEms="2"
 			android:textSize="18sp"
 			android:clickable="true"
 			/>
