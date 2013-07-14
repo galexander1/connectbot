@@ -288,10 +288,10 @@ public class ConsoleActivity extends Activity {
 				if (!keyboardVisible ||
 				    keyboardGroup.getVisibility() == View.GONE || inActionBarMenu)
 					return;
+				actionBar.hide();
 				if (now >= keyboardVisibleUntil) {
 					keyboardGroup.startAnimation(keyboard_fade_out);
 					keyboardGroup.setVisibility(View.GONE);
-					actionBar.hide();
 					keyboardVisible = false;
 				} else {
 					handler.postDelayed(new hiderRunnable(), keyboardVisibleUntil - now);
