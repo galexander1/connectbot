@@ -137,7 +137,6 @@ public class ConsoleActivity extends Activity {
 	private ActionBarWrapper actionBar;
 	private boolean inActionBarMenu = false;
 
-	private boolean keyboardVisible = false;
 	private long keyboardVisibleUntil = 0;
 
 	private ServiceConnection connection = new ServiceConnection() {
@@ -272,11 +271,10 @@ public class ConsoleActivity extends Activity {
 		long now = SystemClock.uptimeMillis();
 		keyboardVisibleUntil = now + KEYBOARD_DISPLAY_TIME;
 
-		if (keyboardVisible) {
+		if (keyboardGroup.getVisibility() != View.GONE) {
 			return;
 		}
 
-		keyboardVisible = true;
 		keyboardGroup.startAnimation(keyboard_fade_in);
 		keyboardGroup.setVisibility(View.VISIBLE);
 		actionBar.show();
@@ -285,14 +283,12 @@ public class ConsoleActivity extends Activity {
 			@Override
 			public void run() {
 				long now = SystemClock.uptimeMillis();
-				if (!keyboardVisible ||
-				    keyboardGroup.getVisibility() == View.GONE || inActionBarMenu)
+				if (keyboardGroup.getVisibility() == View.GONE || inActionBarMenu)
 					return;
 				actionBar.hide();
 				if (now >= keyboardVisibleUntil) {
 					keyboardGroup.startAnimation(keyboard_fade_out);
 					keyboardGroup.setVisibility(View.GONE);
-					keyboardVisible = false;
 				} else {
 					handler.postDelayed(new hiderRunnable(), keyboardVisibleUntil - now);
 				}
@@ -412,7 +408,6 @@ public class ConsoleActivity extends Activity {
 				inputManager.showSoftInput(flip, InputMethodManager.SHOW_FORCED);
 				keyboardGroup.setVisibility(View.GONE);
 				actionBar.hide();
-				keyboardVisible = false;
 			}
 		});
 
@@ -428,7 +423,6 @@ public class ConsoleActivity extends Activity {
 
 				keyboardGroup.setVisibility(View.GONE);
 				actionBar.hide();
-				keyboardVisible = false;
 			}
 		});
 
