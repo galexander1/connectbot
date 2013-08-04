@@ -51,6 +51,8 @@ public class PreferenceConstants {
 
 	public static final String FULLSCREEN = "fullscreen";
 
+	public static final String ALWAYSKEYS = "alwayskeys";
+
 	public static final String KEYMODE = "keymode";
 
 	public static final String KEYMODE_RIGHT = "Use right-side keys";

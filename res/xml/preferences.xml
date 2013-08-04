@@ -84,6 +84,13 @@
 			android:defaultValue="false"
 			/>
 
+		<CheckBoxPreference
+			android:key="alwayskeys"
+			android:title="@string/pref_alwayskeys_title"
+			android:summary="@string/pref_alwayskeys_summary"
+			android:defaultValue="false"
+			/>
+
 		<ListPreference
 			android:key="keymode"
 			android:title="@string/pref_keymode_title"

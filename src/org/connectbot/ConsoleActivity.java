@@ -122,6 +122,13 @@ public class ConsoleActivity extends Activity {
 	private InputMethodManager inputManager;
 
 	private RelativeLayout keyboardGroup;
+	private TextView keyboardButtonCtrl;
+	private TextView keyboardButtonEsc;
+	private TextView keyboardButtonTab;
+	private TextView keyboardButtonLeft;
+	private TextView keyboardButtonRight;
+	private TextView keyboardButtonUp;
+	private TextView keyboardButtonDown;
 
 	private MenuItem disconnect, copy, paste, portForward, resize, urlscan;
 
@@ -138,6 +145,8 @@ public class ConsoleActivity extends Activity {
 	private boolean inActionBarMenu = false;
 
 	private long keyboardVisibleUntil = 0;
+	private boolean currKeyLabelAlpha = true;
+	private boolean alwaysKeysPref = false;
 
 	private ServiceConnection connection = new ServiceConnection() {
 		public void onServiceConnected(ComponentName className, IBinder service) {
@@ -265,15 +274,45 @@ public class ConsoleActivity extends Activity {
 		booleanPromptGroup.setVisibility(View.GONE);
 	}
 
+	// controls the transparency of the keyboardGroup keys, so that we can
+	// display the outlines for ALWAYSKEYS preference without clutter
+	private void setKeyLabelAlpha(boolean visible) {
+		int textcol = (visible ? 0xffffffff : 0x00000000);
+		int bgres = (visible ? R.drawable.console_button
+				     : R.drawable.hidden_console_button);
+
+		keyboardButtonCtrl.setTextColor(textcol);
+		keyboardButtonCtrl.setBackgroundResource(bgres);
+		keyboardButtonEsc.setTextColor(textcol);
+		keyboardButtonEsc.setBackgroundResource(bgres);
+		keyboardButtonTab.setTextColor(textcol);
+		keyboardButtonTab.setBackgroundResource(bgres);
+		keyboardButtonLeft.setTextColor(textcol);
+		keyboardButtonLeft.setBackgroundResource(bgres);
+		keyboardButtonRight.setTextColor(textcol);
+		keyboardButtonRight.setBackgroundResource(bgres);
+		keyboardButtonUp.setTextColor(textcol);
+		keyboardButtonUp.setBackgroundResource(bgres);
+		keyboardButtonDown.setTextColor(textcol);
+		keyboardButtonDown.setBackgroundResource(bgres);
+		mKeyboardButton.setVisibility(visible ? View.VISIBLE
+						      : View.GONE);
+
+		currKeyLabelAlpha = visible;
+	}
+
 	// ensures that keyboardGroup will be visible for the next
 	// KEYBOARD_DISPLAY_TIME ms
 	private void showKeyboardGroup() {
 		long now = SystemClock.uptimeMillis();
 		keyboardVisibleUntil = now + KEYBOARD_DISPLAY_TIME;
 
-		if (keyboardGroup.getVisibility() != View.GONE) {
+		if ((keyboardGroup.getVisibility() != View.GONE) &&
+		    currKeyLabelAlpha) {
 			return;
 		}
+
+		setKeyLabelAlpha(true);
 
 		keyboardGroup.startAnimation(keyboard_fade_in);
 		keyboardGroup.setVisibility(View.VISIBLE);
@@ -287,8 +326,7 @@ public class ConsoleActivity extends Activity {
 					return;
 				actionBar.hide();
 				if (now >= keyboardVisibleUntil) {
-					keyboardGroup.startAnimation(keyboard_fade_out);
-					keyboardGroup.setVisibility(View.GONE);
+					hideKeyboardGroup();
 				} else {
 					handler.postDelayed(new hiderRunnable(), keyboardVisibleUntil - now);
 				}
@@ -296,6 +334,16 @@ public class ConsoleActivity extends Activity {
 		}
 
 		handler.postDelayed(new hiderRunnable(), KEYBOARD_DISPLAY_TIME);
+	}
+
+	private void hideKeyboardGroup() {
+		if (alwaysKeysPref) {
+			setKeyLabelAlpha(false);
+			keyboardGroup.setVisibility(View.VISIBLE);
+		} else {
+			keyboardGroup.startAnimation(keyboard_fade_out);
+			keyboardGroup.setVisibility(View.GONE);
+		}
 	}
 
 	// more like configureLaxMode -- enable network IO on UI thread
@@ -406,13 +454,13 @@ public class ConsoleActivity extends Activity {
 					return;
 
 				inputManager.showSoftInput(flip, InputMethodManager.SHOW_FORCED);
-				keyboardGroup.setVisibility(View.GONE);
+				hideKeyboardGroup();
 				actionBar.hide();
 			}
 		});
 
-		final TextView ctrlButton = (TextView) findViewById(R.id.button_ctrl);
-		ctrlButton.setOnClickListener(new OnClickListener() {
+		keyboardButtonCtrl = (TextView) findViewById(R.id.button_ctrl);
+		keyboardButtonCtrl.setOnClickListener(new OnClickListener() {
 			public void onClick(View view) {
 				View flip = findCurrentView(R.id.console_flip);
 				if (flip == null) return;
@@ -421,13 +469,13 @@ public class ConsoleActivity extends Activity {
 				TerminalKeyListener handler = terminal.bridge.getKeyHandler();
 				handler.metaPress(TerminalKeyListener.META_CTRL_ON);
 
-				keyboardGroup.setVisibility(View.GONE);
+				hideKeyboardGroup();
 				actionBar.hide();
 			}
 		});
 
-		final TextView escButton = (TextView) findViewById(R.id.button_esc);
-		escButton.setOnClickListener(new OnClickListener() {
+		keyboardButtonEsc = (TextView) findViewById(R.id.button_esc);
+		keyboardButtonEsc.setOnClickListener(new OnClickListener() {
 			public void onClick(View view) {
 				View flip = findCurrentView(R.id.console_flip);
 				if (flip == null) return;
@@ -436,11 +484,11 @@ public class ConsoleActivity extends Activity {
 				TerminalKeyListener handler = terminal.bridge.getKeyHandler();
 				handler.sendEscape();
 
-				showKeyboardGroup();
+				if (!alwaysKeysPref) showKeyboardGroup();
 			}
 		});
-		final TextView tabButton = (TextView) findViewById(R.id.button_tab);
-		tabButton.setOnClickListener(new OnClickListener() {
+		keyboardButtonTab = (TextView) findViewById(R.id.button_tab);
+		keyboardButtonTab.setOnClickListener(new OnClickListener() {
 			public void onClick(View view) {
 				View flip = findCurrentView(R.id.console_flip);
 				if (flip == null) return;
@@ -449,11 +497,11 @@ public class ConsoleActivity extends Activity {
 				TerminalKeyListener handler = terminal.bridge.getKeyHandler();
 				handler.onKey(terminal, KeyEvent.KEYCODE_TAB, new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_TAB));
 
-				showKeyboardGroup();
+				if (!alwaysKeysPref) showKeyboardGroup();
 			}
 		});
-		final TextView leftButton = (TextView) findViewById(R.id.button_left);
-		leftButton.setOnClickListener(new OnClickListener() {
+		keyboardButtonLeft = (TextView) findViewById(R.id.button_left);
+		keyboardButtonLeft.setOnClickListener(new OnClickListener() {
 			public void onClick(View view) {
 				View flip = findCurrentView(R.id.console_flip);
 				if (flip == null) return;
@@ -462,11 +510,11 @@ public class ConsoleActivity extends Activity {
 				TerminalKeyListener handler = terminal.bridge.getKeyHandler();
 				handler.onKey(terminal, KeyEvent.KEYCODE_DPAD_LEFT, new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_LEFT));
 
-				showKeyboardGroup();
+				if (!alwaysKeysPref) showKeyboardGroup();
 			}
 		});
-		final TextView rightButton = (TextView) findViewById(R.id.button_right);
-		rightButton.setOnClickListener(new OnClickListener() {
+		keyboardButtonRight = (TextView) findViewById(R.id.button_right);
+		keyboardButtonRight.setOnClickListener(new OnClickListener() {
 			public void onClick(View view) {
 				View flip = findCurrentView(R.id.console_flip);
 				if (flip == null) return;
@@ -475,11 +523,11 @@ public class ConsoleActivity extends Activity {
 				TerminalKeyListener handler = terminal.bridge.getKeyHandler();
 				handler.onKey(terminal, KeyEvent.KEYCODE_DPAD_RIGHT, new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_RIGHT));
 
-				showKeyboardGroup();
+				if (!alwaysKeysPref) showKeyboardGroup();
 			}
 		});
-		final TextView upButton = (TextView) findViewById(R.id.button_up);
-		upButton.setOnClickListener(new OnClickListener() {
+		keyboardButtonUp = (TextView) findViewById(R.id.button_up);
+		keyboardButtonUp.setOnClickListener(new OnClickListener() {
 			public void onClick(View view) {
 				View flip = findCurrentView(R.id.console_flip);
 				if (flip == null) return;
@@ -488,11 +536,11 @@ public class ConsoleActivity extends Activity {
 				TerminalKeyListener handler = terminal.bridge.getKeyHandler();
 				handler.onKey(terminal, KeyEvent.KEYCODE_DPAD_UP, new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_UP));
 
-				showKeyboardGroup();
+				if (!alwaysKeysPref) showKeyboardGroup();
 			}
 		});
-		final TextView downButton = (TextView) findViewById(R.id.button_down);
-		downButton.setOnClickListener(new OnClickListener() {
+		keyboardButtonDown = (TextView) findViewById(R.id.button_down);
+		keyboardButtonDown.setOnClickListener(new OnClickListener() {
 			public void onClick(View view) {
 				View flip = findCurrentView(R.id.console_flip);
 				if (flip == null) return;
@@ -501,7 +549,7 @@ public class ConsoleActivity extends Activity {
 				TerminalKeyListener handler = terminal.bridge.getKeyHandler();
 				handler.onKey(terminal, KeyEvent.KEYCODE_DPAD_DOWN, new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_DOWN));
 
-				showKeyboardGroup();
+				if (!alwaysKeysPref) showKeyboardGroup();
 			}
 		});
 
@@ -512,7 +560,7 @@ public class ConsoleActivity extends Activity {
 			public void onMenuVisibilityChanged(boolean isVisible) {
 				inActionBarMenu = isVisible;
 				if (isVisible == false) {
-					keyboardGroup.setVisibility(View.GONE);
+					hideKeyboardGroup();
 					actionBar.hide();
 				}
 			}
@@ -678,7 +726,6 @@ public class ConsoleActivity extends Activity {
 					lastX = event.getX();
 					lastY = event.getY();
 				} else if (event.getAction() == MotionEvent.ACTION_UP
-						&& keyboardGroup.getVisibility() == View.GONE
 						&& event.getEventTime() - event.getDownTime() < CLICK_TIME
 						&& Math.abs(event.getX() - lastX) < MAX_CLICK_DISTANCE
 						&& Math.abs(event.getY() - lastY) < MAX_CLICK_DISTANCE) {
@@ -972,6 +1019,8 @@ public class ConsoleActivity extends Activity {
 
 		if (forcedOrientation && bound != null)
 			bound.setResizeAllowed(true);
+
+		alwaysKeysPref = prefs.getBoolean(PreferenceConstants.ALWAYSKEYS, false);
 	}
 
 	/* (non-Javadoc)
@@ -1116,14 +1165,17 @@ public class ConsoleActivity extends Activity {
 			stringPrompt.setHint(prompt.promptHint);
 			stringPrompt.requestFocus();
 
+			keyboardGroup.setVisibility(View.GONE);
 		} else if(Boolean.class.equals(prompt.promptRequested)) {
 			booleanPromptGroup.setVisibility(View.VISIBLE);
 			booleanPrompt.setText(prompt.promptHint);
 			booleanYes.requestFocus();
 
+			keyboardGroup.setVisibility(View.GONE);
 		} else {
 			hideAllPrompts();
 			view.requestFocus();
+			hideKeyboardGroup();
 		}
 	}
 
