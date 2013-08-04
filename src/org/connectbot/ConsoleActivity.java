@@ -277,7 +277,7 @@ public class ConsoleActivity extends Activity {
 	// controls the transparency of the keyboardGroup keys, so that we can
 	// display the outlines for ALWAYSKEYS preference without clutter
 	private void setKeyLabelAlpha(boolean visible) {
-		int textcol = (visible ? 0xffffffff : 0x00000000);
+		int textcol = (visible ? 0xffffffff : 0x11ffffff);
 		int bgres = (visible ? R.drawable.console_button
 				     : R.drawable.hidden_console_button);
 
