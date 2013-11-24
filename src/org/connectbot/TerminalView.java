@@ -33,6 +33,7 @@ import android.content.Intent;
 import android.content.pm.ResolveInfo;
 import android.database.Cursor;
 import android.graphics.Canvas;
+import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
@@ -104,13 +105,13 @@ public class TerminalView extends View implements FontSizeChangedListener {
 		setFocusableInTouchMode(true);
 
 		cursorPaint = new Paint();
-		cursorPaint.setColor(bridge.color[bridge.defaultFg]);
-		cursorPaint.setXfermode(new PixelXorXfermode(bridge.color[bridge.defaultBg]));
+		cursorPaint.setColor(bridge.color[bridge.defaultBg]);
 		cursorPaint.setAntiAlias(true);
+		cursorPaint.setStrokeWidth(20.0f);
+		cursorPaint.setStyle(Paint.Style.STROKE);
 
 		cursorStrokePaint = new Paint(cursorPaint);
-		cursorStrokePaint.setStrokeWidth(0.1f);
-		cursorStrokePaint.setStyle(Paint.Style.STROKE);
+		cursorStrokePaint.setStrokeWidth(5.0f);
 
 		/*
 		 * Set up our cursor indicators on a 1x1 Path object which we can later
@@ -118,22 +119,22 @@ public class TerminalView extends View implements FontSizeChangedListener {
 		 */
 		// TODO make this into a resource somehow
 		shiftCursor = new Path();
-		shiftCursor.lineTo(0.5f, 0.33f);
-		shiftCursor.lineTo(1.0f, 0.0f);
+		shiftCursor.lineTo( 50f, 33f);
+		shiftCursor.lineTo(100f,  0f);
 
 		altCursor = new Path();
-		altCursor.moveTo(0.0f, 1.0f);
-		altCursor.lineTo(0.5f, 0.66f);
-		altCursor.lineTo(1.0f, 1.0f);
+		altCursor.moveTo(  0f, 100f);
+		altCursor.lineTo( 50f,  66f);
+		altCursor.lineTo(100f, 100f);
 
 		ctrlCursor = new Path();
-		ctrlCursor.moveTo(0.0f, 0.25f);
-		ctrlCursor.lineTo(1.0f, 0.5f);
-		ctrlCursor.lineTo(0.0f, 0.75f);
+		ctrlCursor.moveTo(  0f, 25f);
+		ctrlCursor.lineTo(100f, 50f);
+		ctrlCursor.lineTo(  0f, 75f);
 
 		// For creating the transform when the terminal resizes
 		tempSrc = new RectF();
-		tempSrc.set(0.0f, 0.0f, 1.0f, 1.0f);
+		tempSrc.set(0.0f, 0.0f, 100f, 100f);
 		tempDst = new RectF();
 		scaleMatrix = new Matrix();
 
@@ -172,6 +173,43 @@ public class TerminalView extends View implements FontSizeChangedListener {
 		scaleMatrix.setRectToRect(tempSrc, tempDst, scaleType);
 	}
 
+	// PixelXorXfermode is deprecated as of Android API 16 (Jelly Bean),
+	// and appears to be a no-op, so use this function instead to draw a
+	// XORed (inverse video) cursor onto the canvas, using the bridge's
+	// bitmap as a source
+	private void applyCursor(Canvas c, Bitmap b,
+				int x, int y, int width, int height) {
+		int bw = b.getWidth();
+		int bh = b.getHeight();
+		if ((x + width <= 0) || (x >= bw) ||
+		    (y + height <= 0) || (y >= bh)) {
+			return;
+		}
+		if (x < 0) {
+			width += x;
+			x = 0;
+		}
+		if (x + width >= bw) {
+			width = bw - x;
+		}
+		if (y < 0) {
+			height += y;
+			y = 0;
+		}
+		if (y + height >= bh) {
+			height = bh - y;
+		}
+
+		int pixels[] = new int[width*height];
+		int i;
+		b.getPixels(pixels, 0, width, x, y, width, height);
+		for (i = 0; i < width * height; i++) {
+			pixels[i] ^= 0x00ffffff;
+		}
+		c.drawBitmap(pixels, 0, width, x, y, width, height,
+				/*hasAlpha=*/false, /*paint=*/null);
+	}
+
 	@Override
 	public void onDraw(Canvas canvas) {
 		if(bridge.bitmap != null) {
@@ -203,6 +241,10 @@ public class TerminalView extends View implements FontSizeChangedListener {
 						+ bridge.buffer.screenBase - bridge.buffer.windowBase)
 						* bridge.charHeight;
 
+				applyCursor(canvas, bridge.bitmap,
+						x, y,
+						bridge.charWidth * (onWideCharacter ? 2 : 1),
+						bridge.charHeight);
 				// Save the current clip and translation
 				canvas.save();
 
@@ -210,7 +252,6 @@ public class TerminalView extends View implements FontSizeChangedListener {
 				canvas.clipRect(0, 0,
 						bridge.charWidth * (onWideCharacter ? 2 : 1),
 						bridge.charHeight);
-				canvas.drawPaint(cursorPaint);
 
 				final int deadKey = bridge.getKeyHandler().getDeadKey();
 				if (deadKey != 0) {
@@ -244,15 +285,12 @@ public class TerminalView extends View implements FontSizeChangedListener {
 			// draw any highlighted area
 			if (bridge.isSelectingForCopy()) {
 				SelectionArea area = bridge.getSelectionArea();
-				canvas.save(Canvas.CLIP_SAVE_FLAG);
-				canvas.clipRect(
+				applyCursor(canvas, bridge.bitmap,
 					area.getLeft() * bridge.charWidth,
 					area.getTop() * bridge.charHeight,
-					(area.getRight() + 1) * bridge.charWidth,
-					(area.getBottom() + 1) * bridge.charHeight
+					(area.getRight() + 1 - area.getLeft()) * bridge.charWidth,
+					(area.getBottom() + 1 - area.getTop()) * bridge.charHeight
 				);
-				canvas.drawPaint(cursorPaint);
-				canvas.restore();
 			}
 		}
 	}
