@@ -355,6 +355,18 @@ public class TerminalView extends View implements FontSizeChangedListener {
 				// TODO: forward delete
 				return true;
 			}
+			@Override
+			public CharSequence getTextBeforeCursor(int length, int flags) {
+			/* always return a buffer full of the maximum amount of
+			 * garbage that is requested, because otherwise modern
+			 * JB Google Keyboard (Latin IME) will filter out some
+			 * of our backspace events */
+				char[] buf = new char[length];
+				for (int i = 0; i < buf.length; i++) {
+					buf[i] = 'x';
+				}
+				return new String(buf);
+			}
 		};
 	}
 
