@@ -74,8 +74,6 @@ public class TerminalKeyListener implements OnKeyListener, OnSharedPreferenceCha
 
 	private int metaState = 0;
 
-	private int mDeadKey = 0;
-
 	// TODO add support for the new API.
 	private ClipboardManager clipboard = null;
 
@@ -116,40 +114,6 @@ public class TerminalKeyListener implements OnKeyListener, OnSharedPreferenceCha
 
 			// Ignore all key-up events except for the special keys
 			if (event.getAction() == KeyEvent.ACTION_UP) {
-				// There's nothing here for virtual keyboard users.
-				if (!hardKeyboard || (hardKeyboard && hardKeyboardHidden))
-					return false;
-
-				// skip keys if we aren't connected yet or have been disconnected
-				if (bridge.isDisconnected() || bridge.transport == null)
-					return false;
-
-				if (PreferenceConstants.KEYMODE_RIGHT.equals(keymode)) {
-					if (keyCode == KeyEvent.KEYCODE_ALT_RIGHT
-							&& (metaState & META_SLASH) != 0) {
-						metaState &= ~(META_SLASH | META_TRANSIENT);
-						bridge.transport.write('/');
-						return true;
-					} else if (keyCode == KeyEvent.KEYCODE_SHIFT_RIGHT
-							&& (metaState & META_TAB) != 0) {
-						metaState &= ~(META_TAB | META_TRANSIENT);
-						bridge.transport.write(0x09);
-						return true;
-					}
-				} else if (PreferenceConstants.KEYMODE_LEFT.equals(keymode)) {
-					if (keyCode == KeyEvent.KEYCODE_ALT_LEFT
-							&& (metaState & META_SLASH) != 0) {
-						metaState &= ~(META_SLASH | META_TRANSIENT);
-						bridge.transport.write('/');
-						return true;
-					} else if (keyCode == KeyEvent.KEYCODE_SHIFT_LEFT
-							&& (metaState & META_TAB) != 0) {
-						metaState &= ~(META_TAB | META_TRANSIENT);
-						bridge.transport.write(0x09);
-						return true;
-					}
-				}
-
 				return false;
 			}
 
@@ -176,63 +140,17 @@ public class TerminalKeyListener implements OnKeyListener, OnSharedPreferenceCha
 			}
 
 			int curMetaState = event.getMetaState();
-			final int orgMetaState = curMetaState;
-
-			if ((metaState & META_SHIFT_MASK) != 0) {
-				curMetaState |= KeyEvent.META_SHIFT_ON;
-			}
-
-			if ((metaState & META_ALT_MASK) != 0) {
-				curMetaState |= KeyEvent.META_ALT_ON;
-			}
-
 			int uchar = event.getUnicodeChar(curMetaState);
-			// no hard keyboard?  ALT-k should pass through to below
-			if ((orgMetaState & KeyEvent.META_ALT_ON) != 0 &&
-					(!hardKeyboard || hardKeyboardHidden)) {
-				uchar = 0;
-			}
-
-			if ((uchar & KeyCharacterMap.COMBINING_ACCENT) != 0) {
-				mDeadKey = uchar & KeyCharacterMap.COMBINING_ACCENT_MASK;
-				return true;
-			}
-
-			if (mDeadKey != 0) {
-				uchar = KeyCharacterMap.getDeadChar(mDeadKey, keyCode);
-				mDeadKey = 0;
-			}
 
 			// otherwise pass through to existing session
 			// print normal keys
 			if (uchar >= 0x20) {
-				metaState &= ~(META_SLASH | META_TAB);
-
-				// Remove shift and alt modifiers
-				final int lastMetaState = metaState;
-				metaState &= ~(META_SHIFT_ON | META_ALT_ON);
-				if (metaState != lastMetaState) {
-					bridge.redraw();
-				}
-
 				if ((metaState & META_CTRL_MASK) != 0) {
 					metaState &= ~META_CTRL_ON;
 					bridge.redraw();
 
-					// If there is no hard keyboard or there is a hard keyboard currently hidden,
-					// CTRL-1 through CTRL-9 will send F1 through F9
-					if ((!hardKeyboard || (hardKeyboard && hardKeyboardHidden))
-							&& sendFunctionKey(keyCode))
-						return true;
-
 					uchar = keyAsControl(uchar);
 				}
-
-				// handle pressing f-keys
-				if ((hardKeyboard && !hardKeyboardHidden)
-						&& (curMetaState & KeyEvent.META_SHIFT_ON) != 0
-						&& sendFunctionKey(keyCode))
-					return true;
 
 				if (uchar < 0x80)
 					bridge.transport.write(uchar);
@@ -242,77 +160,6 @@ public class TerminalKeyListener implements OnKeyListener, OnSharedPreferenceCha
 							.getBytes(encoding));
 
 				return true;
-			}
-
-			// send ctrl and meta-keys as appropriate
-			if (!hardKeyboard || hardKeyboardHidden) {
-				int k = event.getUnicodeChar(0);
-				int k0 = k;
-				boolean sendCtrl = false;
-				boolean sendMeta = false;
-				if (k != 0) {
-					if ((orgMetaState & HC_META_CTRL_ON) != 0) {
-						k = keyAsControl(k);
-						if (k != k0)
-							sendCtrl = true;
-						// send F1-F10 via CTRL-1 through CTRL-0
-						if (!sendCtrl && sendFunctionKey(keyCode))
-							return true;
-					} else if ((orgMetaState & KeyEvent.META_ALT_ON) != 0) {
-						sendMeta = true;
-						sendEscape();
-					}
-					if (sendMeta || sendCtrl) {
-						bridge.transport.write(k);
-						return true;
-					}
-				}
-			}
-			// try handling keymode shortcuts
-			if (hardKeyboard && !hardKeyboardHidden &&
-					event.getRepeatCount() == 0) {
-				if (PreferenceConstants.KEYMODE_RIGHT.equals(keymode)) {
-					switch (keyCode) {
-					case KeyEvent.KEYCODE_ALT_RIGHT:
-						metaState |= META_SLASH;
-						return true;
-					case KeyEvent.KEYCODE_SHIFT_RIGHT:
-						metaState |= META_TAB;
-						return true;
-					case KeyEvent.KEYCODE_SHIFT_LEFT:
-						metaPress(META_SHIFT_ON);
-						return true;
-					case KeyEvent.KEYCODE_ALT_LEFT:
-						metaPress(META_ALT_ON);
-						return true;
-					}
-				} else if (PreferenceConstants.KEYMODE_LEFT.equals(keymode)) {
-					switch (keyCode) {
-					case KeyEvent.KEYCODE_ALT_LEFT:
-						metaState |= META_SLASH;
-						return true;
-					case KeyEvent.KEYCODE_SHIFT_LEFT:
-						metaState |= META_TAB;
-						return true;
-					case KeyEvent.KEYCODE_SHIFT_RIGHT:
-						metaPress(META_SHIFT_ON);
-						return true;
-					case KeyEvent.KEYCODE_ALT_RIGHT:
-						metaPress(META_ALT_ON);
-						return true;
-					}
-				} else {
-					switch (keyCode) {
-					case KeyEvent.KEYCODE_ALT_LEFT:
-					case KeyEvent.KEYCODE_ALT_RIGHT:
-						metaPress(META_ALT_ON);
-						return true;
-					case KeyEvent.KEYCODE_SHIFT_LEFT:
-					case KeyEvent.KEYCODE_SHIFT_RIGHT:
-						metaPress(META_SHIFT_ON);
-						return true;
-					}
-				}
 			}
 
 			// look for special chars
@@ -549,10 +396,6 @@ public class TerminalKeyListener implements OnKeyListener, OnSharedPreferenceCha
 
 	public int getMetaState() {
 		return metaState;
-	}
-
-	public int getDeadKey() {
-		return mDeadKey;
 	}
 
 	public void setClipboardManager(ClipboardManager clipboard) {

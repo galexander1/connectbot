@@ -253,11 +253,6 @@ public class TerminalView extends View implements FontSizeChangedListener {
 						bridge.charWidth * (onWideCharacter ? 2 : 1),
 						bridge.charHeight);
 
-				final int deadKey = bridge.getKeyHandler().getDeadKey();
-				if (deadKey != 0) {
-					canvas.drawText(new char[] { (char)deadKey }, 0, 1, 0, 0, cursorStrokePaint);
-				}
-
 				// Make sure we scale our decorations to the correct size.
 				canvas.concat(scaleMatrix);
 
