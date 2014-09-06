@@ -189,6 +189,7 @@ public class ConsoleActivity extends Activity {
 			}
 
 			setDisplayedTerminal(requestedIndex);
+			requested = null;
 		}
 
 		public void onServiceDisconnected(ComponentName className) {
@@ -1073,6 +1074,7 @@ public class ConsoleActivity extends Activity {
 			}
 
 			setDisplayedTerminal(requestedIndex);
+			requested = null;
 		}
 	}
 
