@@ -1929,7 +1929,6 @@ public void setScreenSize(int c, int r, boolean broadcast) {
               deleteArea(C, R, columns - C, 1, attributes);
             break;
           case 'M': // RI
-            debug("ESC M : R is "+R+", tm is "+getTopMargin()+", bm is "+getBottomMargin());
             if (R > getTopMargin()) { // just go up 1 line.
               R--;
             } else { // scroll down
