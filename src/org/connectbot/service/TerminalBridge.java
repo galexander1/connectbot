@@ -980,7 +980,7 @@ public class TerminalBridge implements VDUDisplay {
 			o += src_l;
 		}
 
-		Matcher urlMatcher = urlPattern.matcher(new String(visibleBuffer));
+		Matcher urlMatcher = urlPattern.matcher(new String(visibleBuffer, 0, o));
 		while (urlMatcher.find())
 			urls.add(urlMatcher.group());
 
