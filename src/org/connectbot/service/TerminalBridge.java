@@ -968,9 +968,17 @@ public class TerminalBridge implements VDUDisplay {
 		}
 
 		char[] visibleBuffer = new char[buffer.height * buffer.width];
-		for (int l = 0; l < buffer.height; l++)
-			System.arraycopy(buffer.charArray[buffer.windowBase + l], 0,
-					visibleBuffer, l * buffer.width, buffer.width);
+		int o = 0;
+		for (int l = 0; l < buffer.height; l++) {
+			char[] src = buffer.charArray[buffer.windowBase + l];
+			int src_o = 0;
+			while ((src_o < buffer.width) && (src[src_o] == ' ')) {
+				src_o++;
+			}
+			int src_l = buffer.width - src_o;
+			System.arraycopy(src, src_o, visibleBuffer, o, src_l);
+			o += src_l;
+		}
 
 		Matcher urlMatcher = urlPattern.matcher(new String(visibleBuffer));
 		while (urlMatcher.find())
