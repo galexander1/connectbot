@@ -1,1 +1,1 @@
-ant debug && cat bin/ConnectBot-debug.apk | ssh roach 'source .profile; cat > /sdcard/buh.apk; pm install -r /sdcard/buh.apk'
+ant debug && pbinst bin/ConnectBot-debug.apk
