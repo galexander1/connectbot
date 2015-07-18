@@ -570,6 +570,12 @@ public class SSH extends AbsTransport implements ConnectionMonitor, InteractiveC
 	}
 
 	public void connectionLost(Throwable reason) {
+		/* prevent calling into connection.close(), which may block
+		 * indefinitely if the connection is lost during the call to
+		 * connection.connect() (because we are probably running in a
+		 * receiver thread instead of the one that called connect()).
+		 * May sometimes leak channels?? */
+		connection = null;
 		onDisconnect();
 	}
 
