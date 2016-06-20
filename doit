@@ -1,1 +1,1 @@
-ant debug && pbinst bin/ConnectBot-debug.apk
+ant debug && mrinst bin/ConnectBot-debug.apk
